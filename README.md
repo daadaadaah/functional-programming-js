@@ -1,5 +1,8 @@
 # Functional JavaScript Programming
+<img src="http://image.kyobobook.co.kr/images/book/xlarge/427/x9791162240427.jpg" width="50%">
+
 ##### By Luis Atencio
+
 
 Since this code uses ES6 artifacts, any code meant to run on the browser must be transpiled with either:
 
