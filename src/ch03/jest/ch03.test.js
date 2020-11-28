@@ -20,6 +20,111 @@ var persons = [p1, p2, p3, p4];
 
 describe('Chapter 3', function () {
 
+
+	test("Understanding without _.map", function () {
+		var result = [];
+		var persons = [p1, p2, p3, p4];
+
+		for(let i = 0; i < persons.length; i++) {
+			var p = persons[i];
+			if(p !== null && p !== undefined) {
+				result.push(p.fullname)
+
+			}
+		}
+
+		expect(result).toEqual([
+			'Haskell Curry',
+			'Barkley Rosser',
+			'John von Neumann',
+			'Alonzo Church', 
+		]);
+	});
+
+	test("Understanding _.map", function () {
+		var result = [];
+		var persons = [p1, p2, p3, p4];
+
+		result = _.map(persons, s => (s !== null && s !== undefined) ? s.fullname : '');
+
+		expect(result).toEqual([
+			'Haskell Curry',
+			'Barkley Rosser',
+			'John von Neumann',
+			'Alonzo Church'
+		]);
+	});
+
+	test("Impelement map", function () {
+		var result = [];
+		var persons = [p1, p2, p3, p4];
+
+		function map(arr , fn) {
+			const len = arr.length;
+			const result = new Array(len);
+
+			for(let idx = 0; idx < len; idx++) {
+				result[idx] = fn(arr[idx], idx, arr);
+			}
+
+			return result;
+		}
+
+		result = map(persons, s => (s !== null && s !== undefined) ? s.fullname : '');
+
+		expect(result).toEqual([
+			'Haskell Curry',
+			'Barkley Rosser',
+			'John von Neumann',
+			'Alonzo Church'
+		]);
+	});
+
+	test("Impelement map2", function () {
+		var result = [];
+		var persons = [p1, p2, p3, p4];
+
+		const map = (iter, f) => {
+			let res = [];
+			for (const a of iter) {
+				res.push(f(a));
+			}
+			return res;
+		};
+
+		result = map(persons, s => (s !== null && s !== undefined) ? s.fullname : '');
+
+		expect(result).toEqual([
+			'Haskell Curry',
+			'Barkley Rosser',
+			'John von Neumann',
+			'Alonzo Church'
+		]);
+	});
+
+
+	test("Understanding _.reverse", function () {
+		var result = [];
+		var persons = [p1, p2, p3, p4];
+
+		result = _(persons).reverse().map(s => (s !== null && s !== undefined) ? s.fullname : '');
+
+		const temp = [
+			'Alonzo Church',
+			'John von Neumann',
+			'Barkley Rosser',
+			'Haskell Curry'
+		];
+		let i = 0;
+
+		for (const a of result) {
+			expect(a).toEqual(temp[i]);
+			i++;
+		}
+	});
+
+
+
 	test("Understanding reduce", function () {
 		let result = _(persons).reduce((stat, person) => {
 			const country = person.address.country;
@@ -37,6 +142,70 @@ describe('Chapter 3', function () {
 		);
 
 	});
+
+	test("Impelement reduce", function () {
+
+		function reduce(arr, fn, accumulator) {
+			let idx = -1, len = arr.length;
+
+			if(!accumulator && len > 0) {
+				accumulator = arr[++idx];
+			}
+
+			while(++idx < len) {
+				accumulator = fn(accumulator, arr[idx], idx, arr);
+			}
+
+			return accumulator;
+		}
+
+		const result = reduce(persons, (stat, person) => {
+			const country = person.address.country;
+			stat[country] = _.isUndefined(stat[country]) ? 1 :
+				stat[country] + 1;
+			return stat;
+		}, {})
+
+		expect(result).toEqual(
+			{
+				'US': 2,
+				'Greece': 1,
+				'Hungary': 1
+			}
+		);
+
+	});
+
+	test("Impelement reduce2", function () {
+
+		const reduce = (f, acc, iter) => {
+			if (!iter) {
+				iter = acc[Symbol.iterator]();
+				acc = iter.next().value;
+			}
+			for (const a of iter) {
+				acc = f(acc, a);
+			}
+			return acc;
+		};
+
+		const result = reduce((stat, person) => {
+			const country = person.address.country;
+			stat[country] = _.isUndefined(stat[country]) ? 1 :
+				stat[country] + 1;
+			return stat;
+		}, {}, persons)
+
+		expect(result).toEqual(
+			{
+				'US': 2,
+				'Greece': 1,
+				'Hungary': 1
+			}
+		);
+
+	});
+
 
 	test("Combining map and reduce", function () {
 		const getCountry = person => person.address.country;
@@ -63,9 +232,12 @@ describe('Chapter 3', function () {
 		expect(result).toEqual({ null: 4 });	// TODO
 	});
 
+
+
+
 	test("Valid or not valid", function () {
-		const isNotValid = val => _.isUndefined(val) || _.isNull(val);
-		const notAllValid = args => _(args).some(isNotValid);
+		const isNotValid = val => _.isUndefined(val) || _.isNull(val); // undefined, null은 올바른 값이 아니다.
+		const notAllValid = args => _(args).some(isNotValid); // 하나라도 true 면, some 함수를 즉시 반환한다. 최소한 하나의 값이라도 올바른지 확인할 때 유용하다.
 		expect(notAllValid(['string', 0, null, undefined])).toBeTruthy() //-> false
 		expect(!notAllValid(['string', 0, {}])).toBeTruthy();             //-> true
 
@@ -75,6 +247,10 @@ describe('Chapter 3', function () {
 		expect(allValid(['string', 0, {}])).toBeTruthy();    //-> true
 	});
 
+
+
+
+
 	test("Introducing filter", function () {
 		const isValid = val => !_.isUndefined(val) && !_.isNull(val);
 		const fullname = person => person.fullname;
@@ -82,7 +258,49 @@ describe('Chapter 3', function () {
 		expect(result.length).toEqual(3);
 	});
 
-	test("People born in 1903", function () {
+
+	test("Impelement filter", function () {
+
+		function filter(arr, predicate) {
+			let idx = -1, len = arr.length, result = [];
+
+			while(++idx < len) {
+				let value = arr[idx];
+				if(predicate(value, idx, this)) {
+					result.push(value);
+				}
+			}
+
+			return result;
+		}
+
+		const result = filter(persons, persons => persons.birthYear === 1903)
+
+		expect(result.length).toEqual(2);
+
+	});
+
+	test("Impelement filter2", function () {
+
+		const filter = (f, iter) => {
+			let res = [];
+			for (const a of iter) {
+				if (f(a)) res.push(a);
+			}
+			return res;
+		};
+		const result = filter(persons => persons.birthYear === 1903, persons)
+
+		expect(result.length).toEqual(2);
+
+		
+
+	});
+
+	
+
+
+	test(" People born in 1903", function () {
 		const bornIn1903 = person => person.birthYear === 1903;
 		const fullname = person => person.fullname;
 
@@ -90,14 +308,46 @@ describe('Chapter 3', function () {
 		expect(result).toEqual('John von Neumann and Alonzo Church');
 	});
 
-	test("Array processing with Lodash", function () {
+
+	test("명령형, Array processing with Lodash", function () {
+		let names = ['alonzo church', 'Haskell curry', 'stephen_kleene',
+			'John Von Neumann', 'stephen_kleene'];
+
+		var result = [];
+		for(let i = 0; i < names.length; i++) {
+			var n = names[i];
+			if(n !== undefined && n !== null) {
+				var ns = n.replace(/_/, ' ').split(' ');
+				for(let j = 0; j < ns.length; j++) {
+					var p = ns[j];
+					p = p.charAt(0).toUpperCase() + p.slice(1);
+					ns[j] = p;
+				}
+
+				if(result.indexOf(ns.join(' ')) < 0) {
+					result.push(ns.join(' '));
+				}
+			}
+		}
+
+		result.sort()
+
+		expect(result).toEqual(['Alonzo Church', 'Haskell Curry', 'John Von Neumann', 'Stephen Kleene']);
+	});
+
+	test("함수형, Array processing with Lodash", function () {
 		let names = ['alonzo church', 'Haskell curry', 'stephen_kleene',
 			'John Von Neumann', 'stephen_kleene'];
 
 		const isValid = val => !_.isUndefined(val) && !_.isNull(val);
 
-		var result = _.chain(names).filter(isValid).map(s => s.replace(/_/, ' '))
-			.uniq().map(_.startCase).sort().value();
+		var result = _.chain(names)
+									.filter(isValid)
+									.map(s => s.replace(/_/, ' '))
+									.uniq()
+									.map(_.startCase)
+									.sort()
+									.value();
 
 		expect(result).toEqual(['Alonzo Church', 'Haskell Curry', 'John Von Neumann', 'Stephen Kleene']);
 	});
@@ -192,10 +442,11 @@ describe('Chapter 3', function () {
 
 	test("Recursive addition 2", function () {
 		function sum(arr, acc = 0) {
-			if (_.isEmpty(arr)) {
+			if (_.isEmpty(arr)) { // 기저 케이스(종료 조건)
 				return acc;
 			}
-			return sum(_.tail(arr), acc + _.first(arr));
+			return sum(_.tail(arr), acc + _.first(arr)); // 재귀 케이스 : _.first와 _.rest로 입력을 점점 줄여가며 자신을 호출
+			// 꼬리 위치에서 재귀 호출
 		};
 
 		expect(sum([])).toEqual(0); //-> 0
@@ -219,10 +470,10 @@ describe('Chapter 3', function () {
 
 		// Create tree structure
 		church.append(rosser).append(turing).append(kleene);
-		kleene.append(nelson).append(constable);
 		rosser.append(mendelson).append(sacks);
 		turing.append(gandy);
-
+		kleene.append(nelson).append(constable);
+		
 		// Use Tree structure to apply a map operation over all nodes
 		let newTree = Tree.map(church, p => p.fullname);
 		expect(newTree.toArray()).toEqual(['Alonzo Church', 'Barkley Rosser', 'Elliot Mendelson',

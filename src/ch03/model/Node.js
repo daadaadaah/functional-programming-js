@@ -34,9 +34,9 @@ exports.Node = class Node {
 	}
 	
 	append(child) {
-		child._parent = this;
-		this._children.push(child);
-		return this;
+		child._parent = this; // 부모 노르를 세팅한다.
+		this._children.push(child); // 자식 리스트에서 자식 노드를 추가한다.
+		return this; // 동일한 노드를 반환한다. (이렇게 해야 메서드를 흘릴 때 편하다)
 	}
 	
 	toString() {
